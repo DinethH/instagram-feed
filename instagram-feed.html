@@ -80,6 +80,10 @@
     /**
      * `instagram-feed`
      * 
+     * Takes an Instagram accessToken and displays user's feed.
+     * 
+     * Example:
+     *      <instagram-feed accessToken="YOUR ACCESS TOKEN"></instagram-feed>
      *
      * @customElement
      * @polymer
@@ -91,6 +95,9 @@
       }
       static get properties() {
         return {
+          /**
+           *  Instagram accessToken obtained upon authorization
+           * */
           accessToken: {
             type: String,
             value: '3928748.fb4bb5b.fd004a85ffcd4444afc354bd204f9caa'
@@ -111,13 +118,20 @@
         this.addEventListener('iron-resize', e => this._onIronResize());
       }
 
+      /**
+       *  Initial render:: upon receiving the JSON response
+       * */
       _onResponse(e) {
         this._data = e.detail.data;
         this._populateItems(this._data);
         this._setDimensions();
       }
 
+      /**
+       *  Executes everytime the user resizes the window
+       * */
       _onIronResize() {
+        // debouncer and async ensures the method doesn't run multiple instances at the same time.
         this._debouncer =
           Polymer.Debouncer.debounce(
             this._debouncer, Polymer.Async.timeOut.after(100),
@@ -128,6 +142,9 @@
           );
       }
 
+      /**
+       *  Set the number of items to either 8 or 9 based on the host width
+       * */
       _populateItems(data) {
         let max;
         max = this._getHostWidth() > 767 ? 8 : 9;
@@ -137,14 +154,21 @@
         }
       }
 
+      /**
+       *  Returns the width of the container as a float
+       * */
       _getHostWidth() {
         return parseFloat(getComputedStyle(this).getPropertyValue('width'));
       }
 
+      /**
+       *  Set width and height for the image items
+       * */
       _setDimensions() {
+        // Polymer.RenderStatus.afterNextRender ensures that the element is rendered
         Polymer.RenderStatus.afterNextRender(this, () => {
-          const divisible = this._getHostWidth() > 767 ? 4 : 3;
-          const gap = this._getHostWidth() > 767 ? 8 : 4;
+          const divisible = this._getHostWidth() > 767 ? 4 : 3; // used to set the grid. i.e 9x9 or 4x4
+          const gap = this._getHostWidth() > 767 ? 8 : 4; // grid gap
           const imageWidth = this._getHostWidth() / divisible - (gap * 2);
           const imageEls = Polymer.dom(this.root).querySelectorAll('iron-image');
           imageEls.forEach(imageEl => {
