@@ -1,0 +1,161 @@
+<link rel="import" href="../polymer/polymer-element.html">
+<link rel="import" href="../polymer/lib/elements/dom-repeat.html">
+<link rel="import" href="../polymer/lib/utils/debounce.html">
+<link rel="import" href="../polymer/lib/utils/render-status.html">
+<link rel="import" href="../byutv-jsonp/byutv-jsonp.html" />
+<link rel="import" href="../iron-image/iron-image.html">
+<link rel="import" href="../iron-icon/iron-icon.html">
+<link rel="import" href="../iron-icons/iron-icons.html">
+<link rel="import" href="../paper-button/paper-button.html">
+<link rel="import" href="../iron-resizable-behavior/iron-resizable-behavior.html">
+
+<dom-module id="instagram-feed">
+  <template>
+    <style>
+       :host {
+        display: block;
+        width: 100%;
+      }
+
+      .center {
+        text-align: center;
+        display: flex;
+        justify-content: center;
+        flex-direction: column;
+        align-items: center;
+      }
+
+      a {
+        text-decoration: none;
+      }
+
+      .item {
+        display: block;
+        padding: 4px;
+      }
+
+      paper-button {
+        color: lightskyblue;
+      }
+
+      iron-image {
+        width: 100%;
+        height: 100%;
+      }
+
+      .grid {
+        width: 100%;
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+      }
+    </style>
+
+    <byutv-jsonp auto url="https://api.instagram.com/v1/users/self/media/recent/" params='{"access_token":"3928748.fb4bb5b.fd004a85ffcd4444afc354bd204f9caa"}'
+      on-response="_onResponse" debounce-duration="300"></byutv-jsonp>
+
+    <div class="center">
+      <div>Photos</div>
+      <h2>Instagram Moments</h2>
+    </div>
+
+    <div class="grid">
+      <template is="dom-repeat" items="{{_items}}">
+        <a class="item" target="_blank" href="[[item.link]]">
+          <iron-image style="background-color: lightgray;" sizing="cover" preload fade src="[[item.images.standard_resolution.url]]"></iron-image>
+        </a>
+      </template>
+    </div>
+
+    <div class="center">
+      <a href="https://www.instagram.com/eirik.torheim/">
+        <paper-button>Follow on Instagram &nbsp;
+          <iron-icon icon="arrow-forward"></iron-icon>
+        </paper-button>
+      </a>
+    </div>
+  </template>
+
+  <script>
+    /**
+     * `instagram-feed`
+     * 
+     *
+     * @customElement
+     * @polymer
+     * @demo demo/index.html
+     */
+    class InstagramFeed extends Polymer.mixinBehaviors([Polymer.IronResizableBehavior], Polymer.Element) {
+      static get is() {
+        return 'instagram-feed';
+      }
+      static get properties() {
+        return {
+          accessToken: {
+            type: String,
+            value: '3928748.fb4bb5b.fd004a85ffcd4444afc354bd204f9caa'
+          },
+          _items: {
+            type: Array,
+            value: []
+          },
+          _data: {
+            type: Array,
+            value: []
+          }
+        };
+      }
+
+      connectedCallback() {
+        super.connectedCallback();
+        this.addEventListener('iron-resize', e => this._onIronResize());
+      }
+
+      _onResponse(e) {
+        this._data = e.detail.data;
+        this._populateItems(this._data);
+        this._setDimensions();
+      }
+
+      _onIronResize() {
+        this._debouncer =
+          Polymer.Debouncer.debounce(
+            this._debouncer, Polymer.Async.timeOut.after(100),
+            () => {
+              this._populateItems(this._data);
+              this._setDimensions();
+            }
+          );
+      }
+
+      _populateItems(data) {
+        let max;
+        max = this._getHostWidth() > 767 ? 8 : 9;
+        this._items = [];
+        for (let i = 0; i < max; i++) {
+          this.push('_items', data[i]);
+        }
+      }
+
+      _getHostWidth() {
+        return parseFloat(getComputedStyle(this).getPropertyValue('width'));
+      }
+
+      _setDimensions() {
+        Polymer.RenderStatus.afterNextRender(this, () => {
+          const divisible = this._getHostWidth() > 767 ? 4 : 3;
+          const gap = this._getHostWidth() > 767 ? 8 : 4;
+          const imageWidth = this._getHostWidth() / divisible - (gap * 2);
+          const imageEls = Polymer.dom(this.root).querySelectorAll('iron-image');
+          imageEls.forEach(imageEl => {
+            imageEl.style.width = `${imageWidth}px`;
+            imageEl.style.height = `${imageWidth}px`;
+          });
+        });
+      }
+
+    }
+
+    window.customElements.define(InstagramFeed.is, InstagramFeed);
+  </script>
+</dom-module>
