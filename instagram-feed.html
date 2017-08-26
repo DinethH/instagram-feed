@@ -3,11 +3,12 @@
 <link rel="import" href="../polymer/lib/utils/debounce.html">
 <link rel="import" href="../polymer/lib/utils/render-status.html">
 <link rel="import" href="../byutv-jsonp/byutv-jsonp.html" />
-<link rel="import" href="../iron-image/iron-image.html">
 <link rel="import" href="../iron-icon/iron-icon.html">
 <link rel="import" href="../iron-icons/iron-icons.html">
 <link rel="import" href="../paper-button/paper-button.html">
 <link rel="import" href="../iron-resizable-behavior/iron-resizable-behavior.html">
+
+<link rel="import" href="lazy-image.html">
 
 <dom-module id="instagram-feed">
   <template>
@@ -38,7 +39,7 @@
         color: lightskyblue;
       }
 
-      iron-image {
+      lazy-image {
         width: 100%;
         height: 100%;
       }
@@ -49,26 +50,29 @@
         flex-wrap: wrap;
         justify-content: center;
       }
+
+      [hidden] {
+        display: none;
+      }
     </style>
 
-    <byutv-jsonp auto url="https://api.instagram.com/v1/users/self/media/recent/" params='{"access_token":"3928748.fb4bb5b.fd004a85ffcd4444afc354bd204f9caa"}'
-      on-response="_onResponse" debounce-duration="300"></byutv-jsonp>
+    <byutv-jsonp id="jsonp" url="https://api.instagram.com/v1/users/self/media/recent/" on-response="_onResponse" debounce-duration="300"></byutv-jsonp>
 
     <div class="center">
-      <div>Photos</div>
-      <h2>Instagram Moments</h2>
+      <slot></slot>
     </div>
 
     <div class="grid">
       <template is="dom-repeat" items="{{_items}}">
         <a class="item" target="_blank" href="[[item.link]]">
-          <iron-image style="background-color: lightgray;" sizing="cover" preload fade src="[[item.images.standard_resolution.url]]"></iron-image>
+          <lazy-image src="[[item.images.standard_resolution.url]]"></lazy-image>
         </a>
       </template>
     </div>
 
-    <div class="center">
-      <a href="https://www.instagram.com/eirik.torheim/">
+    <div class="center" hidden$="{{_shouldShowFollowButton(url)}}">
+      <br>
+      <a href="[[url]]">
         <paper-button>Follow on Instagram &nbsp;
           <iron-icon icon="arrow-forward"></iron-icon>
         </paper-button>
@@ -83,7 +87,10 @@
      * Takes an Instagram accessToken and displays user's feed.
      * 
      * Example:
-     *      <instagram-feed accessToken="YOUR ACCESS TOKEN"></instagram-feed>
+     *    `<instagram-feed access-token="5940909828.18ea415.4c1e89c599b74420b7a92b0e6553307e" url="https://www.instagram.com/instafeedpolymer/">
+     *        <div>Photos</div>
+     *        <h2>Instagram Moments</h2>
+     *    </instagram-feed>`
      *
      * @customElement
      * @polymer
@@ -100,7 +107,14 @@
            * */
           accessToken: {
             type: String,
-            value: '3928748.fb4bb5b.fd004a85ffcd4444afc354bd204f9caa'
+            value: ''
+          },
+          /**
+           *  Link to your Instagram profile
+           * */
+          url: {
+            type: String,
+            value: null
           },
           _items: {
             type: Array,
@@ -113,9 +127,28 @@
         };
       }
 
+      static get observers() {
+        return [
+          '_setAccessToken(accessToken)'
+        ]
+      }
+
       connectedCallback() {
         super.connectedCallback();
         this.addEventListener('iron-resize', e => this._onIronResize());
+      }
+
+      /**
+       *  Create and set param object, and generate request 
+       * */
+      _setAccessToken(accessToken) {
+        if (accessToken) {
+          const params = {
+            "access_token": accessToken
+          };
+          this.$.jsonp.params = params;
+          this.$.jsonp.generateRequest();
+        }
       }
 
       /**
@@ -170,13 +203,20 @@
           const divisible = this._getHostWidth() > 767 ? 4 : 3; // used to set the grid. i.e 9x9 or 4x4
           const gap = this._getHostWidth() > 767 ? 8 : 4; // grid gap
           const imageWidth = this._getHostWidth() / divisible - (gap * 2);
-          const imageEls = Polymer.dom(this.root).querySelectorAll('iron-image');
+          const imageEls = Polymer.dom(this.root).querySelectorAll('lazy-image');
           imageEls.forEach(imageEl => {
             imageEl.style.width = `${imageWidth}px`;
             imageEl.style.height = `${imageWidth}px`;
           });
         });
       }
+
+      _shouldShowFollowButton(url) {
+        if (!url) {
+          return true;
+        }
+      }
+
 
     }
 
