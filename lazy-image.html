@@ -41,8 +41,12 @@
 
         Polymer.RenderStatus.afterNextRender(this, () => {
           const imageEl = this.$.img;
-          const observer = new IntersectionObserver(this._callback.bind(this));
-          observer.observe(imageEl);
+          if (window.IntersectionObserver) {
+            const observer = new IntersectionObserver(this._callback.bind(this));
+            observer.observe(imageEl);
+          } else {
+            imageEl.setAttribute('src', this.src);
+          }
         });
       }
 
