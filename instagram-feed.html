@@ -8,7 +8,7 @@
 <link rel="import" href="../paper-button/paper-button.html">
 <link rel="import" href="../iron-resizable-behavior/iron-resizable-behavior.html">
 
-<link rel="import" href="lazy-image.html">
+<link rel="import" href="../lazy-image/lazy-image.html">
 
 <dom-module id="instagram-feed">
   <template>
@@ -65,7 +65,7 @@
     <div class="grid">
       <template is="dom-repeat" items="{{_items}}">
         <a class="item" target="_blank" href="[[item.link]]">
-          <lazy-image src="[[item.images.standard_resolution.url]]"></lazy-image>
+          <lazy-image fade src="[[item.images.standard_resolution.url]]"></lazy-image>
         </a>
       </template>
     </div>
@@ -151,20 +151,15 @@
         }
       }
 
-      /**
-       *  Initial render:: upon receiving the JSON response
-       * */
+
       _onResponse(e) {
         this._data = e.detail.data;
         this._populateItems(this._data);
         this._setDimensions();
       }
 
-      /**
-       *  Executes everytime the user resizes the window
-       * */
+
       _onIronResize() {
-        // debouncer and async ensures the method doesn't run multiple instances at the same time.
         this._debouncer =
           Polymer.Debouncer.debounce(
             this._debouncer, Polymer.Async.timeOut.after(100),
@@ -175,9 +170,6 @@
           );
       }
 
-      /**
-       *  Set the number of items to either 8 or 9 based on the host width
-       * */
       _populateItems(data) {
         let max;
         max = this._getHostWidth() > 767 ? 8 : 9;
@@ -187,18 +179,13 @@
         }
       }
 
-      /**
-       *  Returns the width of the container as a float
-       * */
+
       _getHostWidth() {
         return parseFloat(getComputedStyle(this).getPropertyValue('width'));
       }
 
-      /**
-       *  Set width and height for the image items
-       * */
+
       _setDimensions() {
-        // Polymer.RenderStatus.afterNextRender ensures that the element is rendered
         Polymer.RenderStatus.afterNextRender(this, () => {
           const divisible = this._getHostWidth() > 767 ? 4 : 3; // used to set the grid. i.e 9x9 or 4x4
           const gap = this._getHostWidth() > 767 ? 8 : 4; // grid gap
