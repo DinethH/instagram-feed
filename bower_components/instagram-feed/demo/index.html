@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, minimum-scale=1, initial-scale=1, user-scalable=yes">
+
+  <title>instagram-feed demo</title>
+
+  <script src="../../webcomponentsjs/webcomponents-lite.js"></script>
+
+  <link rel="import" href="../../iron-demo-helpers/demo-pages-shared-styles.html">
+  <link rel="import" href="../../iron-demo-helpers/demo-snippet.html">
+  <link rel="import" href="../instagram-feed.html">
+
+  <custom-style>
+    <style is="custom-style" include="demo-pages-shared-styles">
+      body {
+        margin: 0;
+        padding: 0;
+        padding-top: 48px;
+      }
+
+      @media (min-width: 1200px) {
+        instagram-feed {
+          width: 80%;
+          margin: 0 auto;
+        }
+      }
+    </style>
+  </custom-style>
+</head>
+
+<body>
+
+  <instagram-feed access-token="5940909828.18ea415.4c1e89c599b74420b7a92b0e6553307e" url="https://www.instagram.com/instafeedpolymer/">
+    <div>Photos</div>
+    <h2>Instagram Moments</h2>
+  </instagram-feed>
+
+</body>
+
+</html>
